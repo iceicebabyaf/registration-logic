@@ -1,3 +1,13 @@
+# 📚 Table of Contents
+
+- [Preparation](#preparation)
+  - [vscode part](#vscode-part)
+  - [SQL part](#sql-part)
+  - [Docker](#docker)
+- [Launch](#launch)
+- [FastApi requests](#fastapi-requests)
+- [HTTP Exceptions](#http-exceptions)
+
 # Preparation
 ## vscode part
 ```
@@ -53,7 +63,7 @@ CREATE TABLE verification_codes (
 );
 ```
 
-# Docker
+## Docker
 ```
 docker-compose up --build
 ```
