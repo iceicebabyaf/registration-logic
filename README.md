@@ -53,6 +53,12 @@ CREATE TABLE verification_codes (
 );
 ```
 
+# Docker
+```
+docker-compose up --build
+```
+
+
 # Launch
 To launch FastApi app:
 ```
