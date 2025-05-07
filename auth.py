@@ -1,4 +1,5 @@
 import json
+import logging
 
 from decimal import Decimal
 from fastapi import Query, HTTPException, APIRouter
@@ -7,22 +8,24 @@ from db import connect_to_db
 
 router = APIRouter()
 
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 async def save_to_db(email: str, password: str):
     try:
         conn = await connect_to_db()
-
         result = await conn.fetchval("SELECT COUNT(*) FROM users WHERE email = $1;", email)
         if result > 0:
             raise HTTPException(status_code=409, detail="Email already exists")
-
         await conn.execute(
             "INSERT INTO users (email, password) VALUES ($1, $2);",
             email, password
         )
         await conn.close()
         return {"status": "success", "email": email}
+    except HTTPException as he:
+        raise he
     except Exception as e:
+        logger.error(f"Error in save_to_db: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 async def get_data_from_db():
