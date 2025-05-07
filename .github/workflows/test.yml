@@ -38,11 +38,16 @@ jobs:
     - name: Check PostgreSQL logs
       if: always()
       run: docker logs fastapi_db
-
+    - name: Create database if not exists
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -c "CREATE DATABASE \"${{ secrets.POSTGRES_DATABASE }}\";" || true
+    - name: List databases
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -l
+    - name: Create users table if not exists
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL);"
+    - name: Check if users table exists
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "\dt"
     - name: Reset database
-      run: |
-        docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
-
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
     - name: Run tests
       run: bash tests/test.sh
     - name: Show logs if tests fail
