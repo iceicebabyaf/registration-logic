@@ -1,0 +1,41 @@
+name: Test Registration Logic
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install docker-compose and netcat
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        sudo apt-get update
+        sudo apt-get install -y netcat
+    - name: Create .env
+      run: |
+        echo "EMAIL_SENDER=${{ secrets.EMAIL_SENDER }}" > .env
+        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
+        echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+        echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+        echo "POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}" >> .env
+        echo "POSTGRES_HOST=localhost" >> .env
+        echo "POSTGRES_PORT=5432" >> .env
+    - name: Start services
+      run: docker-compose up -d
+    - name: Wait for services to start
+      run: |
+        until nc -z 127.0.0.1 8000; do
+          echo "Waiting for FastAPI..."
+          sleep 1
+        done
+    - name: Reset database
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
+    - name: Run tests
+      run: bash tests/test.sh
+    - name: Show logs if tests fail
+      if: failure()
+      run: docker-compose logs
+    - name: Stop services
+      run: docker-compose down
