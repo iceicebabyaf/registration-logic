@@ -4,7 +4,7 @@
 REG_STATUS=$(curl -X POST "http://127.0.0.1:8000/user_registration?email=test@example.com&password=testpass" \
   -H "accept: application/json" \
   -w "%{http_code}\n" -o /dev/null)
-if [ "$REG_STATUS" != "201" ]; then
+if [ "$REG_STATUS" != "200" ]; then
   echo "Registration failed with status $REG_STATUS"
   exit 1
 fi
