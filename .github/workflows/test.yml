@@ -30,7 +30,7 @@ jobs:
           sleep 1
         done
     - name: Reset database
-      run: docker exec -i my_project_db_1 psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
     - name: Run tests
       run: bash tests/test.sh
     - name: Show logs if tests fail
