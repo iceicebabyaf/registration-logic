@@ -50,6 +50,10 @@ jobs:
       run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
     - name: Run tests
       run: bash tests/test.sh
+
+    - name: Show FastAPI logs after tests
+      if: always()
+      run: docker logs fastapi_app
     - name: Show logs if tests fail
       if: failure()
       run: docker-compose logs
