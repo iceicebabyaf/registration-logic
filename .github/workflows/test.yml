@@ -29,8 +29,17 @@ jobs:
           echo "Waiting for FastAPI..."
           sleep 1
         done
+    - name: Wait for PostgreSQL to start
+      run: |
+        until nc -z 127.0.0.1 5432; do
+          echo "Waiting for PostgreSQL..."
+          sleep 1
+        done
+    - name: Check PostgreSQL logs
+      if: always()
+      run: docker logs fastapi_db  
     - name: Reset database
-      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
+      run: docker exec -i fastapi_db psql -h localhost -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
     - name: Run tests
       run: bash tests/test.sh
     - name: Show logs if tests fail
