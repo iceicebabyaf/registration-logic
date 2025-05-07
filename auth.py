@@ -26,6 +26,7 @@ async def save_to_db(email: str, password: str):
         raise he
     except Exception as e:
         logger.error(f"Error in save_to_db: {str(e)}", exc_info=True)
+        print(f"Error in save_to_db: {str(e)}")  # Явный вывод для отладки
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 async def get_data_from_db():

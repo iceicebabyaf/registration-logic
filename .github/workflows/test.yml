@@ -46,6 +46,8 @@ jobs:
       run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "CREATE TABLE IF NOT EXISTS users (email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, balance DECIMAL DEFAULT 0.0, is_logged_in BOOLEAN DEFAULT FALSE);"
     - name: Check if users table exists
       run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "\dt"
+    - name: Debug table creation
+      run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "\d users" || echo "Table check failed"
     - name: Reset database
       run: docker exec -i fastapi_db psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DATABASE }} -c "TRUNCATE TABLE users RESTART IDENTITY;"
     - name: Run tests
