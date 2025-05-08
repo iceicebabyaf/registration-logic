@@ -18,8 +18,10 @@ if [ "$LOGIN_STATUS" != "200" ]; then
   exit 1
 fi
 
-LOGAUT_STATUS=$(curl "http://127.0.0.1:8000/user_logout?email=test@example.com")
-if [ "$LOGAUT_STATUS" != "200" ]: then
-    echo "Logaut failed with status $LOGAUT_STATUS"
+LOGAUT_STATUS=$(curl "http://127.0.0.1:8000/user_logout?email=test@example.com" \
+  -H "accept: application/json" \
+  -w "%{http_code}\n" -o /dev/null)
+if [ "$LOGAUT_STATUS" != "200" ]; then
+    echo "Logout failed with status $LOGAUT_STATUS"
     exit 1
 fi
