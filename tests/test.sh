@@ -18,6 +18,16 @@ if [ "$LOGIN_STATUS" != "200" ]; then
   exit 1
 fi
 
+
+
+UPDATE_BALANCE=$(curl  "http://127.0.0.1:8000/update_balance?email=test@example.com&amount=100.0" \
+  -H "accept: application/json" \
+  -w "%{http_code}\n" -o /dev/null)
+if [ "$UPDATE_BALANCE" != "200"]; then
+    echo "Update balance failed with status $UPDATE_BALANCE"
+    exit 1
+fi
+
 LOGAUT_STATUS=$(curl "http://127.0.0.1:8000/user_logout?email=test@example.com" \
   -H "accept: application/json" \
   -w "%{http_code}\n" -o /dev/null)
