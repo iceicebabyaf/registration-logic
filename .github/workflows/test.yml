@@ -25,7 +25,11 @@ jobs:
       run: docker-compose up -d
     - name: Wait for services to start
       run: |
-        until nc -z 127.0.0.1 8000; do
+        for i in {1..30}; do
+          if nc -z fastapi_app 8000; then
+            echo "FastAPI is ready"
+            break
+          fi
           echo "Waiting for FastAPI..."
           sleep 1
         done
