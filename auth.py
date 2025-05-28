@@ -102,26 +102,6 @@ async def login(email: str, password: str):
         logger.error(f"Error in login: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-# async def login(email: str, password: str):
-#     try:
-#         password = pbkdf2_sha256.hash(password)
-#         conn = await connect_to_db()
-#         row = await conn.fetchrow(
-#             "SELECT email, balance FROM users WHERE email = $1 AND password = $2;",
-#             email, password
-#         )
-#         if row is None:
-#             raise HTTPException(status_code=401, detail="Invalid email or password")
-
-#         await conn.execute(
-#             "UPDATE users SET is_logged_in = TRUE WHERE email = $1;",
-#             email
-#         )
-
-#         await conn.close()
-#         return {"email": row["email"], "balance": row["balance"]}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 async def logaut(email: str):
     try:
