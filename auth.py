@@ -156,7 +156,7 @@ async def save_data(user: UserRegistration):
 async def post_login(user: UserLogin):
     return await login(user.email, user.password)
 
-@router.get("/user_logout")
+@router.post("/user_logout")
 async def post_logaut(user: UserLogout):
     return await logaut(user.email)
 
@@ -164,6 +164,6 @@ async def post_logaut(user: UserLogout):
 async def get_data():
     return await get_data_from_db()
 
-@router.get("/update_balance")
+@router.post("/update_balance")
 async def update_balance_endpoint(user: UpdateBalance):
     return await update_balance(user.email, user.amount)

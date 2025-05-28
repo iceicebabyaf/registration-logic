@@ -4,7 +4,7 @@
 REG_STATUS=$(curl -X POST "http://127.0.0.1:8000/user_registration" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "testpass"}' \
+  -d '{"email": "test@example.com", "password": "testpassword"}' \
   -w "%{http_code}\n" -o /dev/null)
 if [ "$REG_STATUS" != "200" ]; then
   echo "Registration failed with status $REG_STATUS"
@@ -15,7 +15,7 @@ fi
 LOGIN_STATUS=$(curl -X POST "http://127.0.0.1:8000/user_login" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "testpass"}' \
+  -d '{"email": "test@example.com", "password": "testpassword"}' \
   -w "%{http_code}\n" -o /dev/null)
 if [ "$LOGIN_STATUS" != "200" ]; then
   echo "Login failed with status $LOGIN_STATUS"
@@ -23,7 +23,7 @@ if [ "$LOGIN_STATUS" != "200" ]; then
 fi
 
 # Тест обновления баланса
-UPDATE_BALANCE=$(curl "http://127.0.0.1:8000/update_balance" \
+UPDATE_BALANCE=$(curl -X POST "http://127.0.0.1:8000/update_balance" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com", "amount": 100.0}' \
@@ -43,7 +43,7 @@ if [ "$GET_DATA" != "200" ]; then
 fi
 
 # Тест выхода
-LOGAUT_STATUS=$(curl "http://127.0.0.1:8000/user_logout" \
+LOGAUT_STATUS=$(curl -X POST "http://127.0.0.1:8000/user_logout" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com"}' \
