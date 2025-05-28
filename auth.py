@@ -3,6 +3,7 @@ import logging
 
 from decimal import Decimal
 from fastapi import Query, HTTPException, APIRouter
+from passlib.hash import pbkdf2_sha256
 
 from db import connect_to_db
 
@@ -70,25 +71,57 @@ async def update_balance(email: str, amount: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
+
+
 async def login(email: str, password: str):
     try:
         conn = await connect_to_db()
+        # Получаем хешированный пароль из базы данных
         row = await conn.fetchrow(
-            "SELECT email, balance FROM users WHERE email = $1 AND password = $2;",
-            email, password
+            "SELECT email, password, balance FROM users WHERE email = $1;",
+            email
         )
         if row is None:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        # Проверяем, соответствует ли введённый пароль хешированному паролю
+        if not pbkdf2_sha256.verify(password, row["password"]):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        # Обновляем статус входа
         await conn.execute(
             "UPDATE users SET is_logged_in = TRUE WHERE email = $1;",
             email
         )
 
         await conn.close()
-        return {"email": row["email"], "balance": row["balance"]}
+        return {"email": row["email"], "balance": float(row["balance"])}
+    except HTTPException as he:
+        raise he
     except Exception as e:
+        logger.error(f"Error in login: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+# async def login(email: str, password: str):
+#     try:
+#         password = pbkdf2_sha256.hash(password)
+#         conn = await connect_to_db()
+#         row = await conn.fetchrow(
+#             "SELECT email, balance FROM users WHERE email = $1 AND password = $2;",
+#             email, password
+#         )
+#         if row is None:
+#             raise HTTPException(status_code=401, detail="Invalid email or password")
+
+#         await conn.execute(
+#             "UPDATE users SET is_logged_in = TRUE WHERE email = $1;",
+#             email
+#         )
+
+#         await conn.close()
+#         return {"email": row["email"], "balance": row["balance"]}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 async def logaut(email: str):
     try:
@@ -127,7 +160,8 @@ curl -X 'POST' 'http://127.0.0.1:8000/user_registration?email=<email>&password=<
 """
 @router.post("/user_registration")
 async def save_data(email: str, password: str):
-    return await save_to_db(email, password)
+    hashed_password = pbkdf2_sha256.hash(password)
+    return await save_to_db(email, hashed_password)
 
 """
 curl -X 'POST' 'http://127.0.0.1:8000/user_login?email=<email>&password=<password>' -H 'accept: application/json'
