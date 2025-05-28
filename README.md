@@ -21,7 +21,7 @@ EMAIL_PASSWORD=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DATABASE=
-POSTGRES_HOST=localhost
+POSTGRES_HOST=fastapi_db
 POSTGRES_PORT=5432
 ```
 EMAIL_PASSWORD - it is the app password of the Google account from which the messages will be sent.
