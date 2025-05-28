@@ -1,16 +1,36 @@
 import json
 import logging
-
+import re
 from decimal import Decimal
-from fastapi import Query, HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter
 from passlib.hash import pbkdf2_sha256
-
+from pydantic import BaseModel, EmailStr, Field
 from db import connect_to_db
 
 router = APIRouter()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Pydantic модели
+class UserRegistration(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserLogout(BaseModel):
+    email: EmailStr
+
+class UpdateBalance(BaseModel):
+    email: EmailStr
+    amount: float
+
+def normalize_email_for_filename(email: str) -> str:
+    return re.sub(r"[^\w]", "_", email)
+
 async def save_to_db(email: str, password: str):
     try:
         conn = await connect_to_db()
@@ -27,7 +47,6 @@ async def save_to_db(email: str, password: str):
         raise he
     except Exception as e:
         logger.error(f"Error in save_to_db: {str(e)}", exc_info=True)
-        print(f"Error in save_to_db: {str(e)}")  # Явный вывод для отладки
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 async def get_data_from_db():
@@ -71,12 +90,9 @@ async def update_balance(email: str, amount: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-
-
 async def login(email: str, password: str):
     try:
         conn = await connect_to_db()
-        # Получаем хешированный пароль из базы данных
         row = await conn.fetchrow(
             "SELECT email, password, balance FROM users WHERE email = $1;",
             email
@@ -84,11 +100,9 @@ async def login(email: str, password: str):
         if row is None:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # Проверяем, соответствует ли введённый пароль хешированному паролю
         if not pbkdf2_sha256.verify(password, row["password"]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # Обновляем статус входа
         await conn.execute(
             "UPDATE users SET is_logged_in = TRUE WHERE email = $1;",
             email
@@ -101,7 +115,6 @@ async def login(email: str, password: str):
     except Exception as e:
         logger.error(f"Error in login: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
 
 async def logaut(email: str):
     try:
@@ -134,39 +147,23 @@ async def check_is_email_exists(email: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
-
-"""
-curl -X 'POST' 'http://127.0.0.1:8000/user_registration?email=<email>&password=<password>' -H 'accept: application/json'
-"""
 @router.post("/user_registration")
-async def save_data(email: str, password: str):
-    hashed_password = pbkdf2_sha256.hash(password)
-    return await save_to_db(email, hashed_password)
+async def save_data(user: UserRegistration):
+    hashed_password = pbkdf2_sha256.hash(user.password)
+    return await save_to_db(user.email, hashed_password)
 
-"""
-curl -X 'POST' 'http://127.0.0.1:8000/user_login?email=<email>&password=<password>' -H 'accept: application/json'
-"""
 @router.post("/user_login")
-async def post_login(email: str, password: str):
-    return await login(email, password)
+async def post_login(user: UserLogin):
+    return await login(user.email, user.password)
 
-"""
-curl "http://127.0.0.1:8000/user_logout?email=<email>" 
-"""
 @router.get("/user_logout")
-async def post_logaut(email: str):
-    return await logaut(email)
+async def post_logaut(user: UserLogout):
+    return await logaut(user.email)
 
-"""
-curl "http://127.0.0.1:8000/get_users_db" 
-"""
 @router.get("/get_users_db")
 async def get_data():
     return await get_data_from_db()
 
-"""
-curl "http://127.0.0.1:8000/update_balance?email=<user_email>&amount=<some_float_val>"
-"""
 @router.get("/update_balance")
-async def update_balance_endpoint(email: str, amount: float):
-    return await update_balance(email, amount)
+async def update_balance_endpoint(user: UpdateBalance):
+    return await update_balance(user.email, user.amount)
