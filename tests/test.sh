@@ -69,7 +69,7 @@ if [ "$LOGIN_STATUS" != "200" ]; then
 fi
 
 # Тест обновления баланса
-UPDATE_BALANCE=$(curl -X POST "http://127.0.0.1:8000/update_balance" \
+UPDATE_BALANCE=$(curl "http://127.0.0.1:8000/update_balance" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com", "amount": 100.0}' \
